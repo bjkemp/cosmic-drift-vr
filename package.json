@@ -1,0 +1,29 @@
+{
+  "name": "cosmic-drift-vr",
+  "version": "1.0.0",
+  "description": "An immersive WebVR space exploration experience for Meta Quest 2",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx serve",
+    "deploy": "gh-pages -d ."
+  },
+  "keywords": [
+    "vr",
+    "webvr",
+    "aframe",
+    "space",
+    "quest",
+    "game"
+  ],
+  "author": "Claude + Benjamin",
+  "license": "MIT",
+  "devDependencies": {
+    "gh-pages": "^6.0.0",
+    "serve": "^14.2.1"
+  },
+  "homepage": "https://github.com/username/cosmic-drift-vr",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/username/cosmic-drift-vr.git"
+  }
+}

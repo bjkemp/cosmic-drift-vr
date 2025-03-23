@@ -1,0 +1,59 @@
+body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    font-family: 'Arial', sans-serif;
+    background-color: #000;
+}
+
+.ui-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+    pointer-events: none;
+    opacity: 1;
+    transition: opacity 0.5s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: #fff;
+    text-align: center;
+}
+
+.ui-overlay.hidden {
+    opacity: 0;
+}
+
+.game-title {
+    font-size: 3rem;
+    font-weight: bold;
+    margin-bottom: 2rem;
+    color: #88CCFF;
+    text-shadow: 0 0 10px rgba(136, 204, 255, 0.7);
+}
+
+.instructions {
+    font-size: 1.2rem;
+    max-width: 600px;
+    line-height: 1.5;
+}
+
+/* Hide overlay when in VR mode */
+.a-enter-vr-button {
+    z-index: 11;
+}
+
+/* Optimization for mobile VR */
+@media only screen and (max-width: 768px) {
+    .game-title {
+        font-size: 2rem;
+    }
+    
+    .instructions {
+        font-size: 1rem;
+    }
+}

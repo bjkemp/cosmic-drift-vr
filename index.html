@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Cosmic Drift VR</title>
+    <meta name="description" content="An immersive cosmic journey in WebVR">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- A-Frame core -->
+    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+    <!-- A-Frame extras for physics and controls -->
+    <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v6.1.1/dist/aframe-extras.min.js"></script>
+    <!-- Custom styles -->
+    <link rel="stylesheet" type="text/css" href="css/style.css">
+    <!-- Custom scripts -->
+    <script src="js/components.js"></script>
+    <script src="js/systems.js"></script>
+    <script src="js/main.js"></script>
+</head>
+<body>
+    <a-scene 
+        renderer="antialias: true; colorManagement: true; highRefreshRate: true; foveationLevel: 2"
+        loading-screen="dotsColor: #0A0A0A; backgroundColor: #000000"
+        device-orientation-permission-ui="enabled: false"
+        vr-mode-ui="enterVRButton: #enter-vr-button"
+        performance-optimizer="level: medium; foveationLevel: 2; dynamicFoveation: true">
+        
+        <!-- Asset Management System -->
+        <a-assets timeout="10000">
+            <img id="space-sky" src="assets/textures/space-sky.jpg" crossorigin="anonymous">
+            <!-- Will add more assets here as they're created -->
+        </a-assets>
+        
+        <!-- Environment -->
+        <a-entity id="environment" position="0 0 0">
+            <a-sky src="#space-sky" rotation="0 0 0"></a-sky>
+            
+            <!-- Ambient Particles -->
+            <a-entity id="space-particles" cosmic-particles="count: 1000"></a-entity>
+            
+            <!-- Space Objects -->
+            <a-entity id="celestial-objects" position="0 0 0"></a-entity>
+        </a-entity>
+        
+        <!-- Player Camera Rig -->
+        <a-entity id="rig" movement-controls="fly: true; speed: 0.3">
+            <a-entity id="player-camera" camera position="0 1.6 0" look-controls wasd-controls>
+                <!-- Hands/Controllers -->
+                <a-entity id="left-hand" oculus-touch-controls="hand: left" visible="true"></a-entity>
+                <a-entity id="right-hand" oculus-touch-controls="hand: right" visible="true"></a-entity>
+                
+                <!-- Interface Elements -->
+                <a-entity id="hud" position="0 0 -1">
+                    <a-text value="COSMIC DRIFT" position="0 0.2 0" scale="0.2 0.2 0.2" align="center" color="#88CCFF"></a-text>
+                    <a-text value="Press trigger to interact" position="0 0.1 0" scale="0.1 0.1 0.1" align="center" color="#FFFFFF"></a-text>
+                </a-entity>
+            </a-entity>
+        </a-entity>
+        
+        <!-- Preload Scene -->
+        <a-entity id="loading-ui" visible="true" position="0 1.6 -2">
+            <a-box id="enter-vr-button" position="0 0 0" depth="0.1" height="0.1" width="0.3" color="#0077FF">
+                <a-text value="ENTER VR" position="0 0 0.051" scale="0.1 0.1 0.1" align="center" color="#FFFFFF"></a-text>
+            </a-box>
+        </a-entity>
+        
+    </a-scene>
+    
+    <!-- UI Outside VR -->
+    <div id="ui-overlay" class="ui-overlay">
+        <div class="game-title">COSMIC DRIFT</div>
+        <div class="instructions">
+            <p>Put on your VR headset and press 'Enter VR'</p>
+            <p>Use the controllers to navigate through space</p>
+        </div>
+    </div>
+</body>
+</html>
