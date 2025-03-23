@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Cosmic Drift VR - Performance Test</title>
+    <meta name="description" content="Performance test for Cosmic Drift VR">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #000;
+            color: #fff;
+        }
+        h1, h2 {
+            color: #88CCFF;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .test-card {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .test-results {
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            margin-top: 10px;
+        }
+        button {
+            background-color: #88CCFF;
+            border: none;
+            color: #000;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #66AAFF;
+        }
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 5px;
+        }
+        .good {
+            color: #4CAF50;
+        }
+        .warning {
+            color: #FFC107;
+        }
+        .bad {
+            color: #F44336;
+        }
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+        #testIframe {
+            border: none;
+            width: 100%;
+            height: 400px;
+            border-radius: 10px;
+            margin-top: 20px;
+            display: none;
+        }
+        .progress-container {
+            width: 100%;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        .progress-bar {
+            height: 10px;
+            border-radius: 5px;
+            background-color: #88CCFF;
+            width: 0%;
+            transition: width 0.3s;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Cosmic Drift VR - Performance Test</h1>
+        <p>This page will run tests to check if your device is compatible with Cosmic Drift VR and estimate performance.</p>
+        
+        <div class="test-card">
+            <h2>System Information</h2>
+            <div class="test-results" id="system-info">
+                <div class="metric">
+                    <span>User Agent:</span>
+                    <span id="user-agent">Detecting...</span>
+                </div>
+                <div class="metric">
+                    <span>Device Type:</span>
+                    <span id="device-type">Detecting...</span>
+                </div>
+                <div class="metric">
+                    <span>WebGL Support:</span>
+                    <span id="webgl-support">Detecting...</span>
+                </div>
+                <div class="metric">
+                    <span>WebXR Support:</span>
+                    <span id="webxr-support">Detecting...</span>
+                </div>
+                <div class="metric">
+                    <span>GPU:</span>
+                    <span id="gpu-info">Detecting...</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="test-card">
+            <h2>Performance Tests</h2>
+            <button id="start-tests">Start Performance Tests</button>
+            
+            <div class="progress-container">
+                <div class="progress-bar" id="test-progress"></div>
+            </div>
+            
+            <div class="test-results" id="performance-results" style="display: none;">
+                <div class="metric">
+                    <span>WebGL Rendering:</span>
+                    <span id="webgl-performance">Not tested</span>
+                </div>
+                <div class="metric">
+                    <span>JavaScript Performance:</span>
+                    <span id="js-performance">Not tested</span>
+                </div>
+                <div class="metric">
+                    <span>Memory Usage:</span>
+                    <span id="memory-usage">Not tested</span>
+                </div>
+                <div class="metric">
+                    <span>Estimated FPS:</span>
+                    <span id="estimated-fps">Not tested</span>
+                </div>
+            </div>
+            
+            <iframe id="testIframe" sandbox="allow-scripts allow-same-origin"></iframe>
+        </div>
+        
+        <div class="test-card">
+            <h2>Compatibility Result</h2>
+            <div class="test-results" id="compatibility-result">
+                Run the tests to see if your device is compatible with Cosmic Drift VR.
+            </div>
+        </div>
+        
+        <div class="nav-buttons">
+            <button id="back-button" onclick="window.location.href='index.html'">Back to Home</button>
+            <button id="start-experience" onclick="window.location.href='index.html?test=true'">Start Experience</button>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Display system information
+            displaySystemInfo();
+            
+            // Setup test button
+            document.getElementById('start-tests').addEventListener('click', startPerformanceTests);
+        });
+        
+        // Display system information
+        function displaySystemInfo() {
+            // User agent
+            document.getElementById('user-agent').textContent = navigator.userAgent;
+            
+            // Device type
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Oculus|Quest/i.test(navigator.userAgent);
+            const isQuest = /Quest/i.test(navigator.userAgent);
+            
+            let deviceType = isQuest ? 'Oculus Quest' : (isMobile ? 'Mobile' : 'Desktop');
+            document.getElementById('device-type').textContent = deviceType;
+            document.getElementById('device-type').className = isQuest ? 'good' : (isMobile ? 'warning' : '');
+            
+            // WebGL support
+            checkWebGLSupport().then(result => {
+                document.getElementById('webgl-support').textContent = result.supported ? 
+                    `Yes (${result.version})` : 'No';
+                document.getElementById('webgl-support').className = result.supported ? 'good' : 'bad';
+                
+                // GPU info
+                document.getElementById('gpu-info').textContent = result.renderer || 'Unknown';
+            });
+            
+            // WebXR support
+            checkWebXRSupport().then(supported => {
+                document.getElementById('webxr-support').textContent = supported ? 'Yes' : 'No';
+                document.getElementById('webxr-support').className = supported ? 'good' : 'warning';
+            });
+        }
+        
+        // Check WebGL support
+        async function checkWebGLSupport() {
+            const canvas = document.createElement('canvas');
+            let gl, version = 'Unknown', renderer = 'Unknown', supported = false;
+            
+            try {
+                // Try WebGL 2 first
+                gl = canvas.getContext('webgl2');
+                if (gl) {
+                    version = 'WebGL 2.0';
+                    supported = true;
+                } else {
+                    // Fall back to WebGL 1
+                    gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+                    if (gl) {
+                        version = 'WebGL 1.0';
+                        supported = true;
+                    }
+                }
+                
+                // Get renderer info if available
+                if (gl) {
+                    const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+                    if (debugInfo) {
+                        renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+                    }
+                }
+            } catch (e) {
+                console.error('Error checking WebGL support:', e);
+            }
+            
+            return { supported, version, renderer };
+        }
+        
+        // Check WebXR support
+        async function checkWebXRSupport() {
+            if (navigator.xr) {
+                try {
+                    return await navigator.xr.isSessionSupported('immersive-vr');
+                } catch (e) {
+                    console.error('Error checking WebXR support:', e);
+                    return false;
+                }
+            }
+            return false;
+        }
+        
+        // Start performance tests
+        function startPerformanceTests() {
+            // Show performance results section
+            document.getElementById('performance-results').style.display = 'block';
+            
+            // Get elements
+            const startButton = document.getElementById('start-tests');
+            const progressBar = document.getElementById('test-progress');
+            
+            // Disable button during tests
+            startButton.disabled = true;
+            startButton.textContent = 'Running Tests...';
+            
+            // Tests to run in sequence
+            const tests = [
+                { name: 'WebGL Test', progress: 25, fn: testWebGLPerformance },
+                { name: 'JavaScript Test', progress: 50, fn: testJavaScriptPerformance },
+                { name: 'Memory Test', progress: 75, fn: testMemoryUsage },
+                { name: 'FPS Estimation', progress: 100, fn: estimateFPS }
+            ];
+            
+            // Run tests in sequence
+            let testIndex = 0;
+            
+            function runNextTest() {
+                if (testIndex >= tests.length) {
+                    // All tests complete
+                    finishTests();
+                    return;
+                }
+                
+                const test = tests[testIndex];
+                console.log(`Running test: ${test.name}`);
+                
+                // Update progress
+                progressBar.style.width = `${test.progress}%`;
+                
+                // Run the test
+                test.fn().then(() => {
+                    testIndex++;
+                    setTimeout(runNextTest, 500); // Small delay between tests
+                });
+            }
+            
+            // Start the first test
+            runNextTest();
+        }
+        
+        // WebGL performance test
+        async function testWebGLPerformance() {
+            return new Promise(resolve => {
+                const iframe = document.getElementById('testIframe');
+                iframe.style.display = 'block';
+                
+                // Create a simple WebGL test that draws 1000 triangles
+                iframe.srcdoc = `
+                    <html>
+                    <body style="margin:0; overflow:hidden;">
+                        <canvas id="testCanvas" width="800" height="400"></canvas>
+                        <script>
+                            // WebGL test that measures performance
+                            const canvas = document.getElementById('testCanvas');
+                            const gl = canvas.getContext('webgl');
+                            
+                            if (!gl) {
+                                window.parent.postMessage({ test: 'webgl', result: 'failed', message: 'WebGL not supported' }, '*');
+                                return;
+                            }
+                            
+                            // Create shader program
+                            function createShaderProgram() {
+                                const vsSource = \`
+                                    attribute vec4 aVertexPosition;
+                                    attribute vec4 aVertexColor;
+                                    varying lowp vec4 vColor;
+                                    void main(void) {
+                                        gl_Position = aVertexPosition;
+                                        vColor = aVertexColor;
+                                    }
+                                \`;
+                                
+                                const fsSource = \`
+                                    varying lowp vec4 vColor;
+                                    void main(void) {
+                                        gl_FragColor = vColor;
+                                    }
+                                \`;
+                                
+                                const vertexShader = gl.createShader(gl.VERTEX_SHADER);
+                                gl.shaderSource(vertexShader, vsSource);
+                                gl.compileShader(vertexShader);
+                                
+                                const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+                                gl.shaderSource(fragmentShader, fsSource);
+                                gl.compileShader(fragmentShader);
+                                
+                                const shaderProgram = gl.createProgram();
+                                gl.attachShader(shaderProgram, vertexShader);
+                                gl.attachShader(shaderProgram, fragmentShader);
+                                gl.linkProgram(shaderProgram);
+                                
+                                return shaderProgram;
+                            }
+                            
+                            // Create buffer with many triangles
+                            function createTriangles(count) {
+                                const positions = [];
+                                const colors = [];
+                                
+                                for (let i = 0; i < count; i++) {
+                                    // Random triangle
+                                    const x = Math.random() * 2 - 1;
+                                    const y = Math.random() * 2 - 1;
+                                    const size = 0.05;
+                                    
+                                    positions.push(
+                                        x, y,
+                                        x + size, y,
+                                        x, y + size
+                                    );
+                                    
+                                    // Random color
+                                    const r = Math.random();
+                                    const g = Math.random();
+                                    const b = Math.random();
+                                    
+                                    colors.push(
+                                        r, g, b, 1.0,
+                                        r, g, b, 1.0,
+                                        r, g, b, 1.0
+                                    );
+                                }
+                                
+                                return { positions, colors };
+                            }
+                            
+                            // Initialize
+                            const shaderProgram = createShaderProgram();
+                            const programInfo = {
+                                program: shaderProgram,
+                                attribLocations: {
+                                    vertexPosition: gl.getAttribLocation(shaderProgram, 'aVertexPosition'),
+                                    vertexColor: gl.getAttribLocation(shaderProgram, 'aVertexColor'),
+                                },
+                            };
+                            
+                            // Create buffers
+                            const triangleCount = 5000; // Stress test with many triangles
+                            const { positions, colors } = createTriangles(triangleCount);
+                            
+                            const positionBuffer = gl.createBuffer();
+                            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+                            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+                            
+                            const colorBuffer = gl.createBuffer();
+                            gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+                            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
+                            
+                            // Measure performance
+                            let startTime = 0;
+                            let frames = 0;
+                            let totalTime = 0;
+                            
+                            function render(now) {
+                                if (!startTime) startTime = now;
+                                const deltaTime = now - startTime;
+                                
+                                // Clear
+                                gl.clearColor(0.0, 0.0, 0.0, 1.0);
+                                gl.clear(gl.COLOR_BUFFER_BIT);
+                                
+                                // Set position attribute
+                                gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+                                gl.vertexAttribPointer(
+                                    programInfo.attribLocations.vertexPosition,
+                                    2, // 2 components per vertex
+                                    gl.FLOAT,
+                                    false,
+                                    0,
+                                    0
+                                );
+                                gl.enableVertexAttribArray(programInfo.attribLocations.vertexPosition);
+                                
+                                // Set color attribute
+                                gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+                                gl.vertexAttribPointer(
+                                    programInfo.attribLocations.vertexColor,
+                                    4, // 4 components per color
+                                    gl.FLOAT,
+                                    false,
+                                    0,
+                                    0
+                                );
+                                gl.enableVertexAttribArray(programInfo.attribLocations.vertexColor);
+                                
+                                // Use shader program
+                                gl.useProgram(programInfo.program);
+                                
+                                // Draw
+                                gl.drawArrays(gl.TRIANGLES, 0, triangleCount * 3);
+                                
+                                // Count frame
+                                frames++;
+                                
+                                // Continue rendering
+                                if (frames < 100) {
+                                    requestAnimationFrame(render);
+                                } else {
+                                    totalTime = now - startTime;
+                                    const fps = frames / (totalTime / 1000);
+                                    
+                                    // Score based on FPS
+                                    let score = 0;
+                                    if (fps >= 50) score = 3; // Excellent
+                                    else if (fps >= 30) score = 2; // Good
+                                    else if (fps >= 15) score = 1; // Poor
+                                    
+                                    // Send results back to parent
+                                    window.parent.postMessage({
+                                        test: 'webgl',
+                                        result: 'success',
+                                        fps: fps,
+                                        triangleCount: triangleCount,
+                                        score: score
+                                    }, '*');
+                                }
+                            }
+                            
+                            // Start rendering
+                            requestAnimationFrame(render);
+                        </script>
+                    </body>
+                    </html>
+                `;
+                
+                // Listen for result message
+                window.addEventListener('message', function handleMessage(event) {
+                    if (event.data && event.data.test === 'webgl') {
+                        // Remove listener
+                        window.removeEventListener('message', handleMessage);
+                        
+                        // Hide iframe
+                        iframe.style.display = 'none';
+                        
+                        // Update result
+                        const resultElement = document.getElementById('webgl-performance');
+                        
+                        if (event.data.result === 'failed') {
+                            resultElement.textContent = 'Failed - WebGL not supported';
+                            resultElement.className = 'bad';
+                        } else {
+                            const fps = Math.round(event.data.fps);
+                            let rating = '';
+                            let className = '';
+                            
+                            if (event.data.score === 3) {
+                                rating = 'Excellent';
+                                className = 'good';
+                            } else if (event.data.score === 2) {
+                                rating = 'Good';
+                                className = 'warning';
+                            } else {
+                                rating = 'Poor';
+                                className = 'bad';
+                            }
+                            
+                            resultElement.textContent = `${rating} (${fps} FPS)`;
+                            resultElement.className = className;
+                        }
+                        
+                        resolve();
+                    }
+                });
+            });
+        }
+        
+        // JavaScript performance test
+        async function testJavaScriptPerformance() {
+            return new Promise(resolve => {
+                const startTime = performance.now();
+                let result = 0;
+                
+                // Computationally intensive test
+                for (let i = 0; i < 1000000; i++) {
+                    result += Math.sin(i * 0.01) * Math.cos(i * 0.01);
+                }
+                
+                const endTime = performance.now();
+                const duration = endTime - startTime;
+                
+                // Update result
+                const resultElement = document.getElementById('js-performance');
+                let rating, className;
+                
+                if (duration < 100) {
+                    rating = 'Excellent';
+                    className = 'good';
+                } else if (duration < 300) {
+                    rating = 'Good';
+                    className = 'warning';
+                } else {
+                    rating = 'Poor';
+                    className = 'bad';
+                }
+                
+                resultElement.textContent = `${rating} (${Math.round(duration)}ms)`;
+                resultElement.className = className;
+                
+                resolve();
+            });
+        }
+        
+        // Memory usage test
+        async function testMemoryUsage() {
+            return new Promise(resolve => {
+                const resultElement = document.getElementById('memory-usage');
+                
+                // Check if performance.memory is available (Chrome only)
+                if (performance.memory) {
+                    const memoryUsage = performance.memory.usedJSHeapSize / (1024 * 1024);
+                    let rating, className;
+                    
+                    if (memoryUsage < 50) {
+                        rating = 'Low Usage';
+                        className = 'good';
+                    } else if (memoryUsage < 100) {
+                        rating = 'Moderate Usage';
+                        className = 'warning';
+                    } else {
+                        rating = 'High Usage';
+                        className = 'bad';
+                    }
+                    
+                    resultElement.textContent = `${rating} (${Math.round(memoryUsage)}MB)`;
+                    resultElement.className = className;
+                } else {
+                    resultElement.textContent = 'Not Available';
+                }
+                
+                resolve();
+            });
+        }
+        
+        // Estimate FPS based on other tests
+        async function estimateFPS() {
+            return new Promise(resolve => {
+                const webglResult = document.getElementById('webgl-performance').textContent;
+                const jsResult = document.getElementById('js-performance').textContent;
+                
+                const resultElement = document.getElementById('estimated-fps');
+                let estimatedFPS, rating, className;
+                
+                // Extract ratings from previous tests
+                const webglRating = webglResult.split(' ')[0];
+                const jsRating = jsResult.split(' ')[0];
+                
+                // Estimate FPS based on ratings
+                if (webglRating === 'Excellent' && jsRating === 'Excellent') {
+                    estimatedFPS = 'Estimated 60+ FPS';
+                    rating = 'Excellent';
+                    className = 'good';
+                } else if (webglRating === 'Poor' || jsRating === 'Poor') {
+                    estimatedFPS = 'Estimated <30 FPS';
+                    rating = 'Poor';
+                    className = 'bad';
+                } else {
+                    estimatedFPS = 'Estimated 30-60 FPS';
+                    rating = 'Good';
+                    className = 'warning';
+                }
+                
+                resultElement.textContent = `${rating} (${estimatedFPS})`;
+                resultElement.className = className;
+                
+                resolve();
+            });
+        }
+        
+        // Complete all tests and show final compatibility
+        function finishTests() {
+            // Enable button
+            const startButton = document.getElementById('start-tests');
+            startButton.disabled = false;
+            startButton.textContent = 'Run Tests Again';
+            
+            // Get results
+            const webglResult = document.getElementById('webgl-performance').textContent;
+            const webxrSupported = document.getElementById('webxr-support').textContent === 'Yes';
+            const estimatedFPS = document.getElementById('estimated-fps').textContent;
+            
+            // Determine compatibility
+            const resultElement = document.getElementById('compatibility-result');
+            const isQuest = /Quest/i.test(navigator.userAgent);
+            
+            if (!webxrSupported) {
+                resultElement.innerHTML = '<span class="bad">⚠️ Not Compatible - WebXR Not Supported</span><br>' + 
+                    'Your browser does not support WebXR, which is required for VR. Please use Oculus Browser on Quest or Chrome on desktop.';
+            } else if (webglResult.includes('Poor')) {
+                resultElement.innerHTML = '<span class="warning">⚠️ Limited Compatibility</span><br>' + 
+                    'Your device may run the experience, but performance might be poor. Try using performance mode.';
+            } else if (isQuest) {
+                resultElement.innerHTML = '<span class="good">✅ Perfect Compatibility - Quest Detected</span><br>' + 
+                    'Your Quest headset is perfectly compatible with Cosmic Drift VR. Enjoy the experience!';
+            } else if (webxrSupported && !webglResult.includes('Poor')) {
+                resultElement.innerHTML = '<span class="good">✅ Compatible</span><br>' + 
+                    'Your device should run Cosmic Drift VR well. For best experience, use a VR headset like Quest 2.';
+            }
+        }
+    </script>
+</body>
+</html>
