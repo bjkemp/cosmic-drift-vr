@@ -21,6 +21,7 @@
     <script src="js/device-optimizations.js"></script>
     <script src="js/test-utils.js"></script>
     <script src="js/screenshot.js"></script>
+    <script src="js/procedural-sky.js"></script>
 </head>
 <body>
     <a-scene 
@@ -32,13 +33,13 @@
         
         <!-- Asset Management System -->
         <a-assets timeout="10000">
-            <img id="space-sky" src="assets/textures/space-sky.png" crossorigin="anonymous">
+            <!-- Removed static space sky texture. Will generate procedurally -->
             <!-- Will add more assets here as they're created -->
         </a-assets>
         
         <!-- Environment -->
         <a-entity id="environment" position="0 0 0">
-            <a-sky src="#space-sky" rotation="0 0 0"></a-sky>
+            <a-sky id="dynamic-sky" rotation="0 0 0"></a-sky>
             
             <!-- Ambient Particles -->
             <a-entity id="space-particles" cosmic-particles="count: 1000"></a-entity>
